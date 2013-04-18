@@ -1,0 +1,131 @@
+
+;  Test cases. All numbers are in hex.
+;
+;      111122223333 *     555566667777 =          5B061D958BF0ECA7C0481B5
+;  3456FEDCAAAA1000 * EDBA00112233FF01 = 309A912AF7188C57E62072DD409A1000
+;  FFFFEEEEDDDDCCCC * BBBBAAAA99998888 = BBBB9E2692C5DDDCC28F7531048D2C60
+;  FFFFFFFFFFFFFFFF * FFFFFFFFFFFFFFFF = FFFFFFFFFFFFFFFE0000000000000001
+;  00000001FFFFFFFF * 00000001FFFFFFFF = 0000000000000003FFFFFFFC00000001
+;  FFFEFFFFFFFFFFFF * FFFF0001FFFFFFFF = FFFE0002FFFDFFFE0001FFFE00000001
+;
+
+;  void llmultiply(unsigned long long int l1,
+;                  unsigned long long int l2,
+;                  unsigned char *result);
+        
+;  a = AH * (2 << 32) + AL
+;  b = BH * (2 << 32) + BL
+;        
+;  a * b = (AH * BH            * (2 << 64)) +
+;          (AH * BL + AL * BH) * (2 << 32)  +
+;           AL * BL
+
+; NASM reference
+;   http://www.nasm.us/doc/
+
+; NASM introduction (I didn't find it useful)
+;   http://www.grack.com/downloads/djgpp/nasm/djgppnasm.txt
+
+; Brief x86 instruction set reference
+;   http://courses.ece.uiuc.edu/ece390/books/labmanual/inst-ref-general.html
+
+; The art of Assembly Language Programming (x86 oriented)
+;   http://www.arl.wustl.edu/~lockwood/class/cs306/books/artofasm/toc.html
+        
+	SECTION .data
+
+
+
+	SECTION .text
+	ALIGN	16
+	BITS	32
+
+	;; To access parameter BH on the stack you do
+	;;   MOV EAX, [EBP + 20]
+	;; Replace the zero below with the correct value to be able
+	;; to write your assembly code a little bit more readable: 
+	;;   MOV EAX, [EBP + BH_OFF]
+	AL_OFF	EQU     8	; Offset from EBP to low  bits of a (AL)
+	AH_OFF	EQU    	12	; Offset from EBP to high bits of a (AH)
+	BL_OFF	EQU     16	; Offset from EBP to low  bits of b (BL)
+	BH_OFF	EQU     20	; Offset from EBP to high bits of b (BH)
+	RES_OFF	EQU     24	; Offset from EBP to result array pointer
+	;;    ^^^^^ Corrected (I think)
+        
+	GLOBAL llmultiply
+
+llmultiply:
+	PUSH EBP
+	MOV EBP, ESP
+
+	;; You do no tneed to PUSH all registers, they play no role. Use them directly. Same applies for POP.
+	;; Save registers
+	PUSH EAX		; low()
+	PUSH EBX		; Upptagen
+	PUSH ECX		; low(ah*bl) + low(al*bh) + high(al*bh)
+	PUSH EDX		; MÅSTE HÅLLAS FRI
+	PUSH EDI		; high(al*bh) + high(ah*bl)
+	PUSH ESI		; 
+	
+	AND ECX, 0 		; Reseting
+	AND EDX, 0
+	AND EDI, 0
+	AND ESI, 0
+
+	;; Definiera vart resultatet ska hamna
+	MOV EBX, [EBP + RES_OFF] ; Save result pointer address. Now EBX is the address of the result.
+
+	;; AL * BL
+	MOV EAX, [EBP + AL_OFF]
+	MOV EDX, [EBP + BL_OFF]
+	MUL EDX 		; -> EDX
+
+	MOV [EBX], EAX		; Save
+	MOV ECX, EDX		; high(al*bl)
+;; Maybe it is a good practice to move EDX directly to EBX+4 (= ECX). Similarly, EBX+8 = EDI and EBX+12 = ESI+EDX.
+	
+	;; AL * BH
+	MOV EAX, [EBP + AL_OFF]
+	MOV EDX, [EBP + BH_OFF]
+	MUL EDX			; -> EDX
+
+	ADD ECX, EAX		; low(al*bh)
+	ADC EDI, EDX		; EDX + Carry -> EDI = high(al*bh)
+	ADC ESI, 0			
+	;; Try instead, if carry flag (CF) is set (1), then MOV 1 to ESI. It is possible ESI has a buffer value. You can use jump instructions for example.
+	
+	;; AH * BL
+	MOV EAX, [EBP + AH_OFF]
+	MOV EDX, [EBP + BL_OFF]
+	MUL EDX			; high(ah*bl)
+
+	ADD ECX, EAX		; low(ah*bl)
+	ADC EDI, EDX		; EDX + Carry -> EDI = high(ah*bl)
+	ADC ESI, 0
+
+	MOV [EBX + 4], ECX	; l(ah*bl) + l(al*bh) + h(al*bl)
+	;; EBX+8 is also set. Why not move them. (Would not matter the result, just a good practice.)
+
+	
+	;; AH * BH
+	MOV EAX, [EBP + AH_OFF]
+	MOV EDX, [EBP + BH_OFF]
+	MUL EDX			; EAX = low(ah*bh)
+	
+	ADD EAX, EDI 		; = low(ah*bh) + high(al*bh) + high(ah*bl)
+	ADC ESI, EDX		;
+	
+	MOV [EBX + 8], EAX
+
+	MOV [EBX + 12], ESI
+	
+	;; Restore previous state
+	POP ESI
+	POP EDI
+	POP EDX
+	POP ECX
+	POP EBX
+	POP EAX	
+	
+	POP EBP				; restore EBP reg
+	RET				;  return

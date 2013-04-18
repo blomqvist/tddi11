@@ -1,0 +1,90 @@
+Embedded Software -- Answers to theory questions
+----------------------------------------------------------
+
+Please don't type lines longer than the ===== lines, insert line breaks,
+please don't remove or modify any but the indicated lines!
+
+==============================================================================
+1a) 2p
+
+Your answer here!
+
+------
+1b) 1p
+
+Your answer here!
+
+==============================================================================
+2a) 2p
+
+Your answer here!
+
+------
+2b) 2p
+
+Your answer here!
+
+------
+2c) 1p
+
+Your answer here!
+
+==============================================================================
+3) 3p
+
+Your answer here!
+
+==============================================================================
+4a) 1p
+
+Your answer here!
+
+------
+4b) 3p
+
+Your answer here!
+
+
+==============================================================================
+5a) 2p
+
+Your answer here!
+
+------
+5b) 2p
+
+Your answer here!
+
+==============================================================================
+6) 6p
+
+Your explanations, assumtions or simplifications here, if any!
+
+==============================================================================
+7a) 3p
+
+Draw the state machine on the provided sheet.
+Write complementary assumptions or explanations here, if any.
+
+------
+7b) 1p
+
+Your answer here!
+
+------
+7c) 1p
+
+Your answer here!
+
+------
+7d) 2p
+
+Your answer here!
+
+==============================================================================
+8) 8p
+
+Write assumptions or simplifications here, if any.
+Write the explanations how your solution works here.
+
+==============================================================================
