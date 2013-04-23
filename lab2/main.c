@@ -1,4 +1,5 @@
 #include <libepc.h>
+#include <limits.h>
 
 void lmultiply(unsigned long long int l1,
                 unsigned long long int l2,
@@ -60,35 +61,35 @@ void lmultiply(unsigned long long int l1,
   for (i = 0; i < 4; ++i) 
     res_ptr[i] = 0;
   
-  for (i = 0; i < 2; ++i) { 
-    *res_ptr = res >> (i*32);
-    ++res_ptr;
+  for (i = 0; i < 2; ++i) {
+    res_ptr[i] = (res >> (i*32));
   }
 
   res = al_bh;
 
-  --res_ptr;
-
   for (i = 0; i < 2; ++i) { 
-    *res_ptr += res >> (i*32);
-    ++res_ptr;
+    if ((UINT_MAX - res_ptr[i+1]) < (res >> (i*32))) { 
+      res_ptr[i+2] += 1;
+    }
+    res_ptr[i+1] += (res >> (i*32));
   }
 
-  --res_ptr;
-  --res_ptr;
   res = ah_bl;
 
   for (i = 0; i < 2; ++i) { 
-    *res_ptr += res >> (i*32);
-    ++res_ptr;
+    if ((UINT_MAX - res_ptr[i+1]) < (res >> (i*32))) {
+      res_ptr[i+2] += 1;
+    }
+    res_ptr[i+1] += (res >> (i*32));
   }
  
   res = ah_bh;
-  --res_ptr;
 
   for (i = 0; i < 2; ++i) { 
-    *res_ptr += res >> (i*32);
-    ++res_ptr;
+    if (!i && (UINT_MAX - res_ptr[i+2]) < (res >> (i*32))) {
+      res_ptr[i+3] += 1;
+    }
+    res_ptr[i+2] += (res >> (i*32));
   }
 
 }
