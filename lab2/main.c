@@ -1,6 +1,6 @@
 #include <libepc.h>
 
-void llmultiply(unsigned long long int l1,
+void lmultiply(unsigned long long int l1,
                 unsigned long long int l2,
                 unsigned char *result);
 
@@ -38,13 +38,60 @@ void PutUnsignedLongLong(unsigned long long int* ulli)
   PutUnsigned(uli[1], 16, 8);
   PutUnsigned(uli[0], 16, 8); 
 }
-/*
+
+#define LOW32(x)  ((x) & 0xFFFFFFFF)
+#define HIGH32(x) (((x) >> 32) & 0xFFFFFFFF)
+
 void lmultiply(unsigned long long int l1,
 		unsigned long long int l2,
 		unsigned char *result)
 {
+  int i = 0;
+  unsigned long long int al_bl, al_bh, ah_bl, ah_bh, res;
+  unsigned int* res_ptr = result;
+
+  al_bl = LOW32(l1)  * LOW32(l2);
+  al_bh = LOW32(l1)  * HIGH32(l2);
+  ah_bl = HIGH32(l1) * LOW32(l2);
+  ah_bh = HIGH32(l1) * HIGH32(l2);
   
-}*/
+  res = al_bl;
+
+  for (i = 0; i < 4; ++i) 
+    res_ptr[i] = 0;
+  
+  for (i = 0; i < 2; ++i) { 
+    *res_ptr = res >> (i*32);
+    ++res_ptr;
+  }
+
+  res = al_bh;
+
+  --res_ptr;
+
+  for (i = 0; i < 2; ++i) { 
+    *res_ptr += res >> (i*32);
+    ++res_ptr;
+  }
+
+  --res_ptr;
+  --res_ptr;
+  res = ah_bl;
+
+  for (i = 0; i < 2; ++i) { 
+    *res_ptr += res >> (i*32);
+    ++res_ptr;
+  }
+ 
+  res = ah_bh;
+  --res_ptr;
+
+  for (i = 0; i < 2; ++i) { 
+    *res_ptr += res >> (i*32);
+    ++res_ptr;
+  }
+
+}
 
 int main(int argc, char *argv[])
 {
@@ -67,7 +114,7 @@ int main(int argc, char *argv[])
     PutUnsignedLongLong(&cases[i].rl);
     PutString("\r\n");
     
-    llmultiply(cases[i].a, cases[i].b, result);
+    lmultiply(cases[i].a, cases[i].b, result);
     
     PutString("Result ");
     PutUnsignedLongLong(&result[8]);
