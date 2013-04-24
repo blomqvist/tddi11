@@ -1,7 +1,7 @@
 #include <libepc.h>
 #include <limits.h>
 
-void llmultiply(unsigned long long int l1,
+void lmultiply(unsigned long long int l1,
                 unsigned long long int l2,
                 unsigned char *result);
 
@@ -43,42 +43,47 @@ void PutUnsignedLongLong(unsigned long long int* ulli)
 #define LOW32(x)  ((x) & 0xFFFFFFFF)
 #define HIGH32(x) (((x) >> 32) & 0xFFFFFFFF)
 
-/*void lmultiply(unsigned long long int l1,
+void lmultiply(unsigned long long int l1,
 		unsigned long long int l2,
 		unsigned char *result)
 {
   int i = 0;
-  unsigned long long int res;
+  unsigned long long int al_bl, al_bh,, res;
   unsigned int* res_ptr = result;
 
   res = LOW32(l1) * LOW32(l2);
   for (i = 0; i < 4; ++i) 
     res_ptr[i] = 0;
-
-  res_ptr[0] = LOW32(res);
-  res_ptr[1] = HIGH32(res);
   
-  res = LOW32(l1) * HIGH32(l2);
+  for (i = 0; i < 2; ++i) {
+    res_ptr[i] = LOW32(res >> (i*32));
+  }
 
-  if ((UINT_MAX - res_ptr[1]) < LOW32(res)) ++res_ptr[2];
-  res_ptr[1] += LOW32(res);
-  if ((UINT_MAX - res_ptr[2]) < HIGH32(res)) ++res_ptr[3];
-  res_ptr[2] += HIGH32(res);
+  res = LOW32(l1) * HIGH32(l2);
+  for (i = 0; i < 2; ++i) { 
+    if ((UINT_MAX - res_ptr[i+1]) < (res >> (i*32))) { 
+      res_ptr[i+2] += 1;
+    }
+    res_ptr[i+1] += LOW32(res >> (i*32));
+  }
 
   res = HIGH32(l1) * LOW32(l2);
-
-  if ((UINT_MAX - res_ptr[1]) < LOW32(res)) ++res_ptr[2];
-  res_ptr[1] += LOW32(res);
-  if ((UINT_MAX - res_ptr[2]) < HIGH32(res)) ++res_ptr[3];
-  res_ptr[2] += HIGH32(res);
+  for (i = 0; i < 2; ++i) { 
+    if ((UINT_MAX - res_ptr[i+1]) < (res >> (i*32))) {
+      res_ptr[i+2] += 1;
+    }
+    res_ptr[i+1] += LOW32(res >> (i*32));
+  }
  
   res = HIGH32(l1) * HIGH32(l2);
+  for (i = 0; i < 2; ++i) { 
+    if (!i && (UINT_MAX - res_ptr[i+2]) < (res >> (i*32))) {
+      res_ptr[i+3] += 1;
+    }
+    res_ptr[i+2] += LOW32(res >> (i*32));
+  }
 
-  if ((UINT_MAX - res_ptr[2]) < LOW32(res)) ++res_ptr[3];
-  res_ptr[2] += LOW32(res);
-  res_ptr[3] += HIGH32(res);
-  
-  }*/
+}
 
 int main(int argc, char *argv[])
 {
@@ -101,7 +106,7 @@ int main(int argc, char *argv[])
     PutUnsignedLongLong(&cases[i].rl);
     PutString("\r\n");
     
-    llmultiply(cases[i].a, cases[i].b, result);
+    lmultiply(cases[i].a, cases[i].b, result);
     
     PutString("Result ");
     PutUnsignedLongLong(&result[8]);
