@@ -23,9 +23,33 @@ int main()
   
   MtCCoroutine(OutBound()) ;
   MtCCoroutine(InBound()) ;
+  MtCCoroutine(DisplayElapsedTime()) ;
 
   
   return 0 ;
+}
+
+void DisplayElapsedTime()
+{
+  unsigned timer, hh, mm, ss;
+  char *c = ":\0";
+  char *ic = " \0";
+  SetCursorVisible(FALSE);
+  for (;;) {
+    MtCYield();
+    timer = Milliseconds() / 100;
+  
+    hh = timer / (3600);
+    mm = (timer / 60) % 60;
+    ss = timer % 60;
+
+    SetCursorPosition(0, 60);
+    PutUnsigned(hh, 10, 2);
+    ss % 2 ? PutString(c) : PutString(ic);
+    PutUnsigned(mm, 10, 2);
+    ss % 2 ? PutString(c) : PutString(ic);
+    PutUnsigned(ss, 10, 2);
+  }
 }
 
 PRIVATE void SerialInit(void)
