@@ -31,12 +31,13 @@ int main()
 
 void DisplayElapsedTime()
 {
-  unsigned timer, hh, mm, ss;
+  unsigned old_timer, timer, hh, mm, ss;
   char *c = ":\0";
   char *ic = " \0";
-  SetCursorVisible(FALSE);
+  
+  old_timer = 0;
+
   for (;;) {
-    MtCYield();
     timer = Milliseconds() / 100;
   
     hh = timer / (3600);
@@ -45,10 +46,16 @@ void DisplayElapsedTime()
 
     SetCursorPosition(0, 60);
     PutUnsigned(hh, 10, 2);
-    ss % 2 ? PutString(c) : PutString(ic);
+    ss % 3 ? PutString(c) : PutString(ic);
     PutUnsigned(mm, 10, 2);
-    ss % 2 ? PutString(c) : PutString(ic);
+    ss % 3 ? PutString(c) : PutString(ic);
     PutUnsigned(ss, 10, 2);
+
+    while (old_timer == timer) {
+      MtCYield();
+      timer = Milliseconds()/100;
+    }
+    old_timer = timer;
   }
 }
 
