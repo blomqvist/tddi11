@@ -21,14 +21,14 @@ THR_PORT	EQU	BASE_PORT
 
 		GLOBAL	SerialPut
 SerialPut:
-		MOV AX, [LSR_PORT]	; (1) Wait for THRE = 1
-		IN AX, DX		; AX -> DX
-		AND DX, 0x20		; Mask that shit piece out
-		TEST DX, 0
-		JZ SerialPut		; Equal zero yes? then goto backtto
-		MOV DX, [THR_PORT]
-		MOV AX, [EBP + 4]
-		OUT DX, AX     		;
+		MOV	DX, LSR_PORT	; (1) Wait for THRE = 1
+		IN 	AL, DX		; AX -> DX
+					; Mask that shit piece out
+		TEST 	AL, 0x20
+		JZ 	SerialPut		; Equal zero yes? then goto backtto
+		MOV 	DX, THR_PORT
+		MOV 	AL, [ESP + 4]
+		OUT 	DX, AL     		;
 		RET			; Yolo_return
 
 ; ---------------------------------------------------------------------
@@ -39,29 +39,31 @@ SerialPut:
 ; are placed in a queue by calling Enqueue(char).
 
 		GLOBAL	SerialISR
-		EXTERN	QueueInsert	; (provided by LIBPC)
+		EXTERN	QueueInsert		; (provided by LIBPC)
 
-SerialISR:	STI			; (1) Enable (higher-priority) IRQs 
-		PUSHA			; (2) Preserve all registers 
+SerialISR:	STI				; (1) Enable (higher-priority) IRQ 
+		PUSHA				; (2) Preserve all registers 
 
-		MOV AX, [LSR_PORT]	; (3) Get character from UART
-		IN AX, DX
-		AND DX, 0x01		; See if read buffer is full
-		TEST DX, 0
-		JZ _Eoi		  	; We got no data (false interrupt)
+		MOV 	DX, LSR_PORT		; (3) Get character from UART
+		IN 	AL, DX
+						; See if read buffer is full
+		TEST 	AL, 0x1
+		JZ 	_Eoi		  	; We got no data (false interrupt)
 
-		MOV AX, [RBR_PORT] 	; Fetch data
-		IN AX, DX
-		MOV [EBP + 4], DX	; (4) Put character into queue 
-					; Param #2: address of data
-					; Param #1: address of queue
+		MOV 	DX, RBR_PORT 		; Fetch data
+		IN 	AL, DX
+						; (4) Put character into queue
+		MOV 	[data], AL
+		PUSH 	data			; Param #2: address of data
+		PUSH 	dword [inbound_queue]	; Param #1: address of queue
+				
+				
 		CALL	QueueInsert
 		ADD	ESP,8
 
-_Eoi:		MOV DX, 0x20		; (5) Enable lower priority interrupts
-		MOV AX, 0		;       (Send Non-Specific EOI to PIC)
-		OUT DX, AX
-		POPA		; (6) Restore all registers
-	
+_Eoi:					; (5) Enable lower priority interrupt
+		MOV 	AL, 0x20	;(Send Non-Specific EOI to PIC)
+		OUT 	0x20, AL
+		POPA			; (6) Restore all registers
 
 		RET			; (7) Return to interrupted code
