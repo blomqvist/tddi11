@@ -46,9 +46,9 @@ void DisplayElapsedTime()
 
     SetCursorPosition(0, 60);
     PutUnsigned(hh, 10, 2);
-    ss % 3 ? PutString(c) : PutString(ic);
+    ss % 2 ? PutString(c) : PutString(ic);
     PutUnsigned(mm, 10, 2);
-    ss % 3 ? PutString(c) : PutString(ic);
+    ss % 2 ? PutString(c) : PutString(ic);
     PutUnsigned(ss, 10, 2);
 
     while (old_timer == timer) {

@@ -66,4 +66,4 @@ _Eoi:					; (5) Enable lower priority interrupt
 		OUT 	0x20, AL
 		POPA			; (6) Restore all registers
 
-		RET			; (7) Return to interrupted code
+		IRET			; (7) Return to interrupted code
