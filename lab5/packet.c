@@ -7,6 +7,25 @@
 #include "elapsed.h"
 #include "serial.h"
 
+static OS_EVENT* oe = NULL;
+static OS_EVENT* char_queue = NULL;
+
+static unsigned charcounter = 0;
+
+void SendCharCountQ(void)
+{
+  if (!char_queue) {
+    static void *char_q[20];
+    char_queue = OSQCreate(char_q, ENTRIES(char_q));
+  }
+}
+
+void PostChar(BYTE8 *bfr)
+{
+  SendCharCountQ();
+  OSQPost(char_queue, bfr);
+}
+
 void ReceivePackets(void)
 {
   SerialInit() ;
@@ -21,11 +40,14 @@ void ReceivePackets(void)
     
     switch (type = SerialGet())
     {
+      //If flag is 1 we send chat
+      //If flag is 2 we send time
       default:
         continue ;
       case 1:
+	
       case 2:
-        break ;
+        break;
     }
     
     bytes = SerialGet();
@@ -38,23 +60,11 @@ void ReceivePackets(void)
     
     for (byte = 0; byte < bytes; byte++)
     {
-      bfr[byte] = SerialGet() ;
-    }
-    switch (type)
-    {
-      case 1:
-        PostText(bfr) ;
-        break ;
-      case 2:
-        PostTime(bfr) ;
-        break ;
-    }
+      if (type == 1)
+
+    free(bfr);
+
+    OSTimeDly(100);
   }
 }
 
-void SendPacket(int type, BYTE8 *bfr, int bytes)
-{
-  /*
-   * Your code here !
-   */
-}

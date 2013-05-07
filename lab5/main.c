@@ -35,6 +35,7 @@ int main()
   OSTaskCreate(InboundText,	NULL, CreateStack(), 2) ;
   OSTaskCreate(OutboundThread,	NULL, CreateStack(), 3) ;
   OSTaskCreate(ElapsedLocal,	NULL, CreateStack(), 4) ;
+  OSTaskCreate(SendChar,        NULL, CreateStack(), 5);
   OSStart() ;
 
   return 0 ;
