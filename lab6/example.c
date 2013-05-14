@@ -12,7 +12,7 @@ Modifications:
 
 /*Global C code is defined at global scope in generated code*/
 
-unsigned char BLINK_Clk;
+byte BLINK_Clk;
 void TimerISR() {
    BLINK_Clk = 1;
 }
@@ -21,9 +21,6 @@ enum BLINK_States { BLINK_OFF, BLINK_BLINK } BLINK_State;
 
 void BLINK_Tick() {
    switch(BLINK_State) { // Transitions
-      case -1:
-         BLINK_State = BLINK_OFF;
-         break;
          case BLINK_OFF:
          if (A > 5) {
             BLINK_State = BLINK_BLINK;
