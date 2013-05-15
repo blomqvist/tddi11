@@ -7,6 +7,7 @@ void TimerISR() {
 }
 
 enum BLINK_STATES { OFF, BLINK, ON } blink_state;
+enum MOTION_STATES { SLEEP, DATA, ROAD, COUNTER } motion_state;
 bool lamp_state = false;
 bool did_read = false; // indicates if a value was previously fjslkadjsa
 unsigned int counter;
@@ -25,6 +26,17 @@ void enable()
     return;
   }
   
+  switch(motion_state) {
+  case SLEEP:
+    break;
+  case DATA:
+    break;
+  case ROAD:
+  case COUNTER:
+    --counter;
+    break;
+  }
+  
   byte A_READ = A & 127;
   if (A_READ > 3)
   {
@@ -40,7 +52,8 @@ void enable()
   }
   else
   {
-    if (counter) --counter;
+    if (counter) 
+      --counter;
     if (!counter)
     {
       did_read = false;
