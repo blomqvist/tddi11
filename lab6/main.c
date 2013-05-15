@@ -21,52 +21,34 @@ void button_press()
 
 void enable()
 {
-  if (!blink_state) {
-    B = 0;
-    return;
-  }
-  
-  switch(motion_state) {
-  case SLEEP:
-    break;
-  case DATA:
-    break;
-  case ROAD:
-  case COUNTER:
-    --counter;
-    break;
-  }
-  
-  byte A_READ = A & 127;
-  if (A_READ > 3)
-  {
-    if (did_read)
+ 
+  byte A_READ = A & 127; // MASK OUT THAT SHIT HEHE
+
+  switch(motion_state) 
     {
-      if (lamp_state)
-	B = 255;
+    case SLEEP:
+      B = 0; // TURN ALL THE LIGHTS OFF
+      if (A_READ > 3)
+	++motion_state; // GO TO DATA
+      break;
+    case DATA:
+      if (A_READ > 3)
+	++motion_state; // ON THE ROAD, AGAIN
       else
-	B = 0;
-      counter = 100;
+	motion_state = SLEEP; // We'll tuck you right back in... Sleep tight, hun.
+      break;
+    case ROAD:
+      B = (lamp_state) ? 255 : 0; // Check if LEDs should be on or off
+      if (A_READ > 3) {
+	counter = 100; // counter reset
+	break;
+      }
+    case COUNTER:
+      if (--counter == 0) {
+	motion_state = SLEEP; // GO BACK TO SLEEP YOU FOOL :-)
+      }
+      break;
     }
-    did_read = true;
-  }
-  else
-  {
-    if (counter) 
-      --counter;
-    if (!counter)
-    {
-      did_read = false;
-      B = 0;
-    }
-    else // counter > 0
-    {
-      if (lamp_state)
-	B = 255;
-      else
-	B = 0;
-    }
-  }
 }
 
 void toggle()
@@ -103,6 +85,7 @@ int main()
 
   B = 0;
   blink_state = OFF;
+  motion_state = SLEEP;
   counter = 0;
   T_FLAG = 0;
   
